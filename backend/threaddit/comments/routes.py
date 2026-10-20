@@ -51,11 +51,17 @@ def delete_comment(cid):
     elif comment.user_id == current_user.id or current_user.has_role("admin"):
         Comments.query.filter_by(id=cid).delete()
         db.session.commit()
+        from threaddit.search.indexer import delete_document
+
+        delete_document("comment", int(cid))
         return jsonify({"message": "Comment deleted"}), 200
     current_user_mod_in = [r.subthread_id for r in current_user.user_role if r.role.slug == "mod"]
     if comment.post.subthread_id in current_user_mod_in:
         Comments.query.filter_by(id=cid).delete()
         db.session.commit()
+        from threaddit.search.indexer import delete_document
+
+        delete_document("comment", int(cid))
         return jsonify({"message": "Comment deleted"}), 200
     return jsonify({"message": "Unauthorized"}), 401
 

@@ -58,6 +58,7 @@ from threaddit.posts.routes import posts
 from threaddit.comments.routes import comments
 from threaddit.reactions.routes import reactions
 from threaddit.messages.routes import messages
+from threaddit.search.routes import search
 
 app.register_blueprint(user)
 app.register_blueprint(threads)
@@ -65,3 +66,11 @@ app.register_blueprint(posts)
 app.register_blueprint(comments)
 app.register_blueprint(reactions)
 app.register_blueprint(messages)
+app.register_blueprint(search)
+
+try:
+    from threaddit.search.client import ensure_index
+
+    ensure_index()
+except Exception as exc:
+    app.logger.warning("Elasticsearch is not ready: %s", exc)

@@ -53,10 +53,15 @@ def get_subthreads():
 @threads.route("/threads/search", methods=["GET"])
 def subthread_search():
     thread_name = request.args.get("name", default="", type=str)
-    thread_name = f"%{thread_name}%"
-    subthread_list = [
-        subthread.as_dict() for subthread in SubthreadInfo.query.filter(SubthreadInfo.name.ilike(thread_name)).all()
-    ]
+    from threaddit.search.client import es_available
+    from threaddit.search.routes import fallback_thread_search, search_threads_by_name
+
+    try:
+        subthread_list = (
+            search_threads_by_name(thread_name) if es_available() else fallback_thread_search(thread_name)
+        )
+    except Exception:
+        subthread_list = fallback_thread_search(thread_name)
     return jsonify(subthread_list), 200
 
 

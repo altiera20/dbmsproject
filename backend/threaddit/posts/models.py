@@ -40,6 +40,9 @@ class Posts(db.Model):
         self.handle_media(form_data.get("content_type"), image, form_data.get("content_url"))
         self.is_edited = True
         db.session.commit()
+        from threaddit.search.indexer import index_post
+
+        index_post(self.id)
 
     @classmethod
     def add(cls, form_data, image, user_id):
@@ -53,6 +56,9 @@ class Posts(db.Model):
             new_post.content = form_data.get("content")
         db.session.add(new_post)
         db.session.commit()
+        from threaddit.search.indexer import index_post
+
+        index_post(new_post.id)
 
     def handle_media(self, content_type, image=None, url=None):
         if content_type == "media" and image:

@@ -16,6 +16,7 @@ const Profile = lazy(() => import("./pages/profile/Profile.jsx"));
 const FullPost = lazy(() => import("./pages/fullPost/FullPost.jsx"));
 const Inbox = lazy(() => import("./pages/inbox/Inbox.jsx"));
 const SavedPosts = lazy(() => import("./pages/saved/SavedPosts.jsx"));
+const Search = lazy(() => import("./pages/search/Search.jsx"));
 const SubThread = lazy(() => import("./pages/thread/SubThread.jsx"));
 
 const router = createBrowserRouter([
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
           {
             path: "/",
             element: <Navigate to="/all" />,
+          },
+          {
+            path: "/search",
+            element: <Search />,
           },
           {
             path: "/:feedName",

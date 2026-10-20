@@ -45,6 +45,9 @@ class User(db.Model, UserMixin):
     def add(self):
         db.session.add(self)
         db.session.commit()
+        from threaddit.search.indexer import index_user
+
+        index_user(self.id)
 
     def patch(self, image, form_data):
         if form_data.get("content_type") == "image" and image:
@@ -56,6 +59,9 @@ class User(db.Model, UserMixin):
             self.avatar = form_data.get("content_url")
         self.bio = form_data.get("bio")
         db.session.commit()
+        from threaddit.search.indexer import index_user
+
+        index_user(self.id)
 
     def delete_avatar(self):
         if self.avatar and self.avatar.startswith(f"https://res.cloudinary.com/{app.config['CLOUDINARY_NAME']}"):

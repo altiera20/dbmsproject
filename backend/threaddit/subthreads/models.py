@@ -29,6 +29,9 @@ class Subthread(db.Model):
         new_sub.handle_logo(form_data.get("content_type"), image, form_data.get("content_url"))
         db.session.add(new_sub)
         db.session.commit()
+        from threaddit.search.indexer import index_thread
+
+        index_thread(new_sub.id)
         return new_sub
 
     def patch(self, form_data, image):
@@ -36,6 +39,9 @@ class Subthread(db.Model):
         if form_data.get("description"):
             self.description = form_data.get("description")
         db.session.commit()
+        from threaddit.search.indexer import index_thread
+
+        index_thread(self.id)
 
     def handle_logo(self, content_type, image=None, url=None):
         if content_type == "image" and image:

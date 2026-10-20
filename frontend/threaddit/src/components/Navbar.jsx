@@ -47,7 +47,7 @@ export function Navbar() {
             <h2 className="font-semibold group-hover:text-theme-orange">All</h2>
           </NavLink>
         </div>
-        <ThreadSearch callBackFunc={(threadUrl) => navigate(threadUrl)} />
+        <GlobalSearch />
       </div>
       <div className="flex items-center md:space-x-6">
         {isAuthenticated && (
@@ -152,6 +152,111 @@ export function AppLogo({ forBanner = false, children }) {
       <h1 className="hidden font-mono text-3xl font-bold tracking-tight md:block">Threaddit</h1>
       {children}
     </Link>
+  );
+}
+
+function typeLabel(type) {
+  switch (type) {
+    case "post":
+      return "Post";
+    case "comment":
+      return "Comment";
+    case "thread":
+      return "Community";
+    case "user":
+      return "User";
+    default:
+      return type;
+  }
+}
+
+function resultPath(item) {
+  if (item.type === "post") return `/post/${item.id}`;
+  if (item.type === "comment") return `/post/${item.comment?.post_id}`;
+  if (item.type === "thread") return `/${item.thread?.name}`;
+  if (item.type === "user") return `/u/${item.user?.username}`;
+  return "/search";
+}
+
+function resultTitle(item) {
+  if (item.type === "post") return item.post?.post_info?.title || "Post";
+  if (item.type === "comment") return item.comment?.content || "Comment";
+  if (item.type === "thread") return item.thread?.name;
+  if (item.type === "user") return `u/${item.user?.username}`;
+  return "";
+}
+
+export function GlobalSearch() {
+  const navigate = useNavigate();
+  const searchRef = useRef();
+  const [search, setSearch] = useState("");
+  const queryData = useQuery({
+    queryKey: ["search/suggest", search],
+    queryFn: async ({ signal }) => {
+      return new Promise((resolve) => setTimeout(resolve, 250)).then(async () => {
+        return await axios
+          .get("/api/search", {
+            params: { q: search, limit: 8 },
+            signal,
+          })
+          .then((data) => data.data);
+      });
+    },
+    enabled: search.trim().length > 0,
+  });
+  useClickOutside(searchRef, () => {
+    setSearch("");
+  });
+
+  function goToResults(event) {
+    event?.preventDefault();
+    const q = search.trim();
+    if (!q) return;
+    navigate(`/search?q=${encodeURIComponent(q)}`);
+    setSearch("");
+  }
+
+  return (
+    <form
+      className="flex items-center py-2.5 pl-2 md:p-2.5 space-x-3 rounded-md bg-neutral-100 relative"
+      ref={searchRef}
+      onSubmit={goToResults}>
+      <Svg type="search" className="w-6 h-6" />
+      <input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        type="search"
+        name="search"
+        id="search"
+        className="py-0.5 w-48 md:w-full bg-neutral-100 focus:outline-none md:pr-20"
+        placeholder="Search posts, comments, communities"
+      />
+      {queryData.data && search && (
+        <ul className="flex absolute right-0 top-full z-50 flex-col p-4 mt-3 space-y-3 w-[22rem] max-w-[90vw] list-none bg-white rounded-md border shadow-xl border-y-theme-gray-blue">
+          {queryData.data.results?.slice(0, 6).map((item) => (
+            <li
+              className="flex flex-col cursor-pointer hover:text-theme-orange"
+              key={`${item.type}-${item.id}`}
+              onClick={() => {
+                navigate(resultPath(item));
+                setSearch("");
+              }}>
+              <span className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
+                {typeLabel(item.type)}
+              </span>
+              <span className="text-sm font-semibold line-clamp-2">{resultTitle(item)}</span>
+            </li>
+          ))}
+          {queryData.data.results?.length === 0 && (
+            <li className="text-sm text-gray-500">No matching results</li>
+          )}
+          <span className="w-full border border-theme-orange"></span>
+          <button type="submit" className="text-sm font-semibold text-left hover:text-theme-orange">
+            See all results for &quot;{search}&quot;
+          </button>
+        </ul>
+      )}
+    </form>
   );
 }
 

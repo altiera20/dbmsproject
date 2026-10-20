@@ -48,6 +48,10 @@ On the front end, the project leverages a stack of essential technologies and li
 
 The project's backend relies on PostgreSQL, a robust and open-source relational database system, to effectively handle data storage and management. Details about the schema, views, and relationships can be found in the backend folder as an SQL file; the schema is shown below.
 
+## Search
+
+Site search is powered by Elasticsearch. Posts, comments, communities, and users are indexed on create/update/delete. Start Elasticsearch with `docker compose up -d elasticsearch`, then from `backend/` run `python reindex_search.py` after seeding or whenever you need to rebuild the index.
+
 ![Schema](https://github.com/StarKhan6368/threaddit/assets/77010375/8e60b685-e3a1-4a72-b219-61399fec79a5)
 
 # Features
@@ -72,6 +76,7 @@ In this project, I've implemented a set of features, which are shown below. It's
 - [x] Join Subthread
 - [x] Leave Subthread
 - [x] Search Subthreads
+- [x] Elasticsearch site search (posts, comments, communities, users)
 - [x] Subthread Logo and Descriptions
 - [ ] Banner & Rules
 
@@ -133,6 +138,8 @@ SECRET_KEY=your_flask_secret_key
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+ELASTICSEARCH_URL=http://localhost:9200
+ELASTICSEARCH_INDEX=threaddit
 ```
 
 Replace the placeholder values with your specific credentials.

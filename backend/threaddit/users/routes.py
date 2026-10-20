@@ -61,9 +61,13 @@ def user_patch():
 @login_required
 def user_delete():
     current_user.delete_avatar()
+    user_id = current_user.id
     User.query.filter_by(id=current_user.id).delete()
     logout_user()
     db.session.commit()
+    from threaddit.search.indexer import delete_document
+
+    delete_document("user", user_id)
     return jsonify({"message": "Successfully deleted"}), 200
 
 
@@ -95,5 +99,11 @@ def users_get():
 @user.route("/user/search/<search>")
 @login_required
 def get_user(search):
-    users = User.query.filter(User.username.ilike(f"%{search}%"))
-    return jsonify([user.as_dict() for user in users]), 200
+    from threaddit.search.client import es_available
+    from threaddit.search.routes import fallback_user_search, search_users_by_name
+
+    try:
+        users = search_users_by_name(search) if es_available() else fallback_user_search(search)
+    except Exception:
+        users = fallback_user_search(search)
+    return jsonify(users), 200

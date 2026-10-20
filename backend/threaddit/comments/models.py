@@ -31,6 +31,9 @@ class Comments(db.Model):
             new_comment.parent_id = form_data["parent_id"]
         db.session.add(new_comment)
         db.session.commit()
+        from threaddit.search.indexer import index_comment
+
+        index_comment(new_comment.id)
         return new_comment.comment_info[0].as_dict(user_id)
 
     def patch(self, content):
@@ -38,6 +41,9 @@ class Comments(db.Model):
             self.content = content
             self.is_edited = True
             db.session.commit()
+            from threaddit.search.indexer import index_comment
+
+            index_comment(self.id)
 
     def __init__(self, user_id, content, post_id=None, has_parent=None, parent_id=None):
         self.user_id = user_id

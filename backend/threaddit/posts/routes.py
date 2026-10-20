@@ -109,12 +109,18 @@ def delete_post(pid):
         post.delete_media()
         Posts.query.filter_by(id=pid).delete()
         db.session.commit()
+        from threaddit.search.indexer import delete_document
+
+        delete_document("post", int(pid))
         return jsonify({"message": "Post deleted"}), 200
     current_user_mod_in = [r.subthread_id for r in current_user.user_role if r.role.slug == "mod"]
     if post.subthread_id in current_user_mod_in:
         post.delete_media()
         Posts.query.filter_by(id=pid).delete()
         db.session.commit()
+        from threaddit.search.indexer import delete_document
+
+        delete_document("post", int(pid))
         return jsonify({"message": "Post deleted"}), 200
     return jsonify({"message": "Unauthorized"}), 401
 
